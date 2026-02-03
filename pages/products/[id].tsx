@@ -7,12 +7,12 @@ export default function ProductDetailPage({ product }: any) {
     <div className="row">
       <div className="col-md-5">
         <Image
-          src={product.image}
-          alt={product.title}
-          width={400}
-          height={400}
-          style={{ objectFit: "contain" }}
-        />
+  src={product.image.replace("http://", "https://")}
+  alt={product.title}
+  width={400}
+  height={400}
+  style={{ objectFit: "contain" }}
+/>
       </div>
 
       <div className="col-md-7">
