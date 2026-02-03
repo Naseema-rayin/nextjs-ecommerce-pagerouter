@@ -47,7 +47,15 @@ export async function getServerSideProps() {
   const categories = ["electronics", "jewelery", "men's clothing", "women's clothing"];
 
   const previews = await Promise.all(
-    categories.map((cat) => fetchCategoryPreview(cat, 4))
+    categories.map(async (cat) => {
+      try {
+        const data = await fetchCategoryPreview(cat, 4);
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error("Failed to fetch category preview:", err);
+        return [];
+      }
+    })
   );
 
   return {
