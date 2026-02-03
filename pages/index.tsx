@@ -26,10 +26,10 @@ export default function HomePage({ previews }: any) {
               <div key={product.id} className="col-md-3 mb-3">
                 <div className="card h-100">
                   <img
-                    src={product.image}
-                    className="card-img-top p-3"
-                    style={{ height: "180px", objectFit: "contain" }}
-                  />
+  src={product.image.replace("http://", "https://")}
+  className="card-img-top p-3"
+  style={{ height: "180px", objectFit: "contain" }}
+/>
                   <div className="card-body">
                     <h6 className="card-title text-truncate">{product.title}</h6>
                   </div>
