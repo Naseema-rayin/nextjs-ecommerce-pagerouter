@@ -1,20 +1,54 @@
 const BASE_URL = "https://fakestoreapi.com";
 
 export async function fetchProducts() {
-  const res = await fetch(`${BASE_URL}/products`);
-  if (!res.ok) throw new Error("Failed to fetch products");
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/products`, { cache: "no-store" });
+
+    if (!res.ok) {
+      console.error("Failed to fetch products:", res.status);
+      return [];
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error("fetchProducts error:", err);
+    return [];
+  }
 }
 
 export async function fetchProductById(id: string) {
-  const res = await fetch(`${BASE_URL}/products/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch product");
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/products/${id}`, { cache: "no-store" });
+
+    if (!res.ok) {
+      console.error("Failed to fetch product:", res.status);
+      return null;
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error("fetchProductById error:", err);
+    return null;
+  }
 }
 
 export async function fetchCategoryPreview(category: string, limit = 4) {
-  const res = await fetch(`${BASE_URL}/products/category/${category}`);
-  if (!res.ok) throw new Error("Failed to fetch category preview");
-  const data = await res.json();
-  return data.slice(0, limit);
+  try {
+    const res = await fetch(
+      `${BASE_URL}/products/category/${category}`,
+      { cache: "no-store" }
+    );
+
+    if (!res.ok) {
+      console.error("Failed to fetch category preview:", res.status);
+      return [];
+    }
+
+    const data = await res.json();
+    return Array.isArray(data) ? data.slice(0, limit) : [];
+  } catch (err) {
+    console.error("fetchCategoryPreview error:", err);
+    return [];
+  }
 }
