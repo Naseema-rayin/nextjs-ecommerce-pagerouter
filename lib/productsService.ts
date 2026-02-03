@@ -1,8 +1,17 @@
 const BASE_URL = "https://fakestoreapi.com";
 
+// Shared headers to avoid 403 on Vercel
+const defaultHeaders = {
+  "User-Agent": "Mozilla/5.0",
+  Accept: "application/json",
+};
+
 export async function fetchProducts() {
   try {
-    const res = await fetch(`${BASE_URL}/products`, { cache: "no-store" });
+    const res = await fetch(`${BASE_URL}/products`, {
+      headers: defaultHeaders,
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       console.error("Failed to fetch products:", res.status);
@@ -10,7 +19,13 @@ export async function fetchProducts() {
     }
 
     const data = await res.json();
-    return Array.isArray(data) ? data : [];
+
+    return Array.isArray(data)
+      ? data.map((p) => ({
+          ...p,
+          image: p.image?.replace("http://", "https://"),
+        }))
+      : [];
   } catch (err) {
     console.error("fetchProducts error:", err);
     return [];
@@ -19,14 +34,22 @@ export async function fetchProducts() {
 
 export async function fetchProductById(id: string) {
   try {
-    const res = await fetch(`${BASE_URL}/products/${id}`, { cache: "no-store" });
+    const res = await fetch(`${BASE_URL}/products/${id}`, {
+      headers: defaultHeaders,
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       console.error("Failed to fetch product:", res.status);
       return null;
     }
 
-    return await res.json();
+    const data = await res.json();
+
+    return {
+      ...data,
+      image: data.image?.replace("http://", "https://"),
+    };
   } catch (err) {
     console.error("fetchProductById error:", err);
     return null;
@@ -35,10 +58,10 @@ export async function fetchProductById(id: string) {
 
 export async function fetchCategoryPreview(category: string, limit = 4) {
   try {
-    const res = await fetch(
-      `${BASE_URL}/products/category/${category}`,
-      { cache: "no-store" }
-    );
+    const res = await fetch(`${BASE_URL}/products/category/${category}`, {
+      headers: defaultHeaders,
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       console.error("Failed to fetch category preview:", res.status);
@@ -46,7 +69,13 @@ export async function fetchCategoryPreview(category: string, limit = 4) {
     }
 
     const data = await res.json();
-    return Array.isArray(data) ? data.slice(0, limit) : [];
+
+    return Array.isArray(data)
+      ? data.slice(0, limit).map((p) => ({
+          ...p,
+          image: p.image?.replace("http://", "https://"),
+        }))
+      : [];
   } catch (err) {
     console.error("fetchCategoryPreview error:", err);
     return [];
