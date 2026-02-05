@@ -1,18 +1,36 @@
+import { GetServerSideProps } from "next";
 import { fetchProductById } from "../../lib/productsService";
 import Image from "next/image";
 import AddToCartButton from "../../components/AddToCartButton";
 
-export default function ProductDetailPage({ product }: any) {
+type Product = {
+  id: number;
+  title: string;
+  price: number;
+  image: string;
+  category: string;
+  description: string;
+};
+
+type ProductDetailProps = {
+  product: Product | null;
+};
+
+export default function ProductDetailPage({ product }: ProductDetailProps) {
+  if (!product) {
+    return <h2 className="text-danger">Product not found</h2>;
+  }
+
   return (
-    <div className="row">
-      <div className="col-md-5">
+    <div className="row mt-4">
+      <div className="col-md-5 text-center">
         <Image
-  src={product.image.replace("http://", "https://")}
-  alt={product.title}
-  width={400}
-  height={400}
-  style={{ objectFit: "contain" }}
-/>
+          src={product.image}
+          alt={product.title}
+          width={400}
+          height={400}
+          style={{ objectFit: "contain" }}
+        />
       </div>
 
       <div className="col-md-7">
@@ -35,8 +53,8 @@ export default function ProductDetailPage({ product }: any) {
   );
 }
 
-export async function getServerSideProps(context: any) {
-  const { id } = context.params;
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { id } = context.params as { id: string };
   const product = await fetchProductById(id);
 
   return {
@@ -44,4 +62,4 @@ export async function getServerSideProps(context: any) {
       product,
     },
   };
-}
+};

@@ -9,7 +9,7 @@ export default function CartPage() {
   );
 
   return (
-    <div>
+    <div className="container mt-4">
       <h1 className="fw-bold mb-3">Your Cart</h1>
 
       {items.length === 0 ? (

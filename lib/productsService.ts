@@ -1,4 +1,6 @@
-const BASE_URL = "https://fakestoreapi.com";
+// /lib/productsService.ts
+
+const BASE_URL = "https://dummyjson.com";
 
 // Shared headers to avoid 403 on Vercel
 const defaultHeaders = {
@@ -6,78 +8,84 @@ const defaultHeaders = {
   Accept: "application/json",
 };
 
-export async function fetchProducts() {
+// Safe fetch wrapper
+async function safeFetch(url: string) {
   try {
-    const res = await fetch(`${BASE_URL}/products`, {
+    const res = await fetch(url, {
       headers: defaultHeaders,
       cache: "no-store",
     });
 
     if (!res.ok) {
-      console.error("Failed to fetch products:", res.status);
-      return [];
-    }
-
-    const data = await res.json();
-
-    return Array.isArray(data)
-      ? data.map((p) => ({
-          ...p,
-          image: p.image?.replace("http://", "https://"),
-        }))
-      : [];
-  } catch (err) {
-    console.error("fetchProducts error:", err);
-    return [];
-  }
-}
-
-export async function fetchProductById(id: string) {
-  try {
-    const res = await fetch(`${BASE_URL}/products/${id}`, {
-      headers: defaultHeaders,
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      console.error("Failed to fetch product:", res.status);
+      console.error("API returned non-OK:", res.status);
       return null;
     }
 
-    const data = await res.json();
-
-    return {
-      ...data,
-      image: data.image?.replace("http://", "https://"),
-    };
+    return await res.json();
   } catch (err) {
-    console.error("fetchProductById error:", err);
+    console.error("Fetch failed:", err);
     return null;
   }
 }
 
-export async function fetchCategoryPreview(category: string, limit = 4) {
-  try {
-    const res = await fetch(`${BASE_URL}/products/category/${category}`, {
-      headers: defaultHeaders,
-      cache: "no-store",
-    });
+// All categories we want to merge
+const ALL_CATEGORIES = [
+  "smartphones",
+  "laptops",
+  "fragrances",
+  "groceries",
+  "home-decoration",
+  "furniture",
+  "tops",
+  "bottoms",
+  "shoes",
+];
 
-    if (!res.ok) {
-      console.error("Failed to fetch category preview:", res.status);
-      return [];
-    }
+// Normalize image fields
+function normalizeProduct(p: any) {
+  return {
+    ...p,
+    image:
+      p.thumbnail ||
+      p.images?.[0] ||
+      p.productImages?.[0] ||
+      p.productImage ||
+      p.image ||
+      "/placeholder.png",
+  };
+}
 
-    const data = await res.json();
-
-    return Array.isArray(data)
-      ? data.slice(0, limit).map((p) => ({
-          ...p,
-          image: p.image?.replace("http://", "https://"),
-        }))
-      : [];
-  } catch (err) {
-    console.error("fetchCategoryPreview error:", err);
-    return [];
+// Fetch products (with optional category)
+export async function fetchProducts(category?: string) {
+  if (category) {
+    const decoded = decodeURIComponent(category);
+    const data = await safeFetch(`${BASE_URL}/products/category/${decoded}`);
+    if (!data) return [];
+    return data.products.map(normalizeProduct);
   }
+
+  // Fetch ALL categories and merge
+  const results = await Promise.all(
+    ALL_CATEGORIES.map((cat) =>
+      safeFetch(`${BASE_URL}/products/category/${cat}`)
+    )
+  );
+
+  const merged = results.flatMap((d) => d?.products || []);
+  return merged.map(normalizeProduct);
+}
+
+// Fetch single product
+export async function fetchProductById(id: string) {
+  const data = await safeFetch(`${BASE_URL}/products/${id}`);
+  if (!data) return null;
+  return normalizeProduct(data);
+}
+
+// Fetch preview for homepage
+export async function fetchCategoryPreview(category: string, limit = 4) {
+  const decoded = decodeURIComponent(category);
+  const data = await safeFetch(`${BASE_URL}/products/category/${decoded}`);
+  if (!data) return [];
+  return data.products.slice(0, limit).map(normalizeProduct);
 }

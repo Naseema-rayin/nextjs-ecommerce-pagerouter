@@ -4,11 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import AddToCartButton from "./AddToCartButton";
 
-export default function FilterClient({ products }: any) {
+type Product = {
+  id: number;
+  title: string;
+  price: number;
+  image: string;
+  category: string;
+};
+
+export default function FilterClient({ products }: { products: Product[] }) {
   const router = useRouter();
   const category = router.query.category as string | undefined;
 
-  const [filtered, setFiltered] = useState(products);
+  const [filtered, setFiltered] = useState<Product[]>(products);
 
   useEffect(() => {
     if (!category) {
@@ -16,8 +24,13 @@ export default function FilterClient({ products }: any) {
       return;
     }
 
-    const decoded = decodeURIComponent(category);
-    setFiltered(products.filter((p: any) => p.category === decoded));
+    const decoded = decodeURIComponent(category).toLowerCase().trim();
+
+    setFiltered(
+      products.filter(
+        (p) => p.category.toLowerCase().trim() === decoded
+      )
+    );
   }, [category, products]);
 
   const handleCategoryClick = (cat: string | null) => {
@@ -32,16 +45,30 @@ export default function FilterClient({ products }: any) {
     <div>
       {/* Category Buttons */}
       <div className="mb-3">
-        <button onClick={() => handleCategoryClick(null)} className="btn btn-link me-3">All</button>
-        <button onClick={() => handleCategoryClick("electronics")} className="btn btn-link me-3">Electronics</button>
-        <button onClick={() => handleCategoryClick("jewelery")} className="btn btn-link me-3">Jewelery</button>
-        <button onClick={() => handleCategoryClick("men's clothing")} className="btn btn-link me-3">Men's Clothing</button>
-        <button onClick={() => handleCategoryClick("women's clothing")} className="btn btn-link">Women's Clothing</button>
+        <button onClick={() => handleCategoryClick(null)} className="btn btn-link me-3">
+          All
+        </button>
+        <button onClick={() => handleCategoryClick("smartphones")} className="btn btn-link me-3">
+          Smartphones
+        </button>
+        <button onClick={() => handleCategoryClick("laptops")} className="btn btn-link me-3">
+          Laptops
+        </button>
+        <button onClick={() => handleCategoryClick("fragrances")} className="btn btn-link me-3">
+          Fragrances
+        </button>
+        <button onClick={() => handleCategoryClick("groceries")} className="btn btn-link">
+          Groceries
+        </button>
       </div>
 
       {/* Product Grid */}
       <div className="row">
-        {filtered.map((product: any) => (
+        {filtered.length === 0 && (
+          <p className="text-muted">No products found in this category.</p>
+        )}
+
+        {filtered.map((product) => (
           <div key={product.id} className="col-md-3 mb-4">
             <div className="card h-100 shadow-sm">
               <Image
@@ -58,7 +85,10 @@ export default function FilterClient({ products }: any) {
                 <p className="text-muted">${product.price}</p>
 
                 <div className="mt-auto">
-                  <Link href={`/products/${product.id}`} className="btn btn-link p-0 mb-2">
+                  <Link
+                    href={`/products/${product.id}`}
+                    className="btn btn-link p-0 mb-2"
+                  >
                     View Details
                   </Link>
 
